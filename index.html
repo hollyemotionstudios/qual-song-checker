@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0d1b2e">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
 <style>
 /* Layout: one full-bleed phone screen; four stacked states (idle, listening, match, lyrics) cross-fade in place. Single deliberate dark look. */
 :root {
@@ -20,7 +20,7 @@
   --mute: rgba(246, 239, 232, 0.58);
   --faint: rgba(246, 239, 232, 0.14);
   --panel: #142538;
-  --display: "Bricolage Grotesque", "Avenir Next", "Helvetica Neue", system-ui, sans-serif;
+  --display: "Figtree", "Avenir Next", "Helvetica Neue", system-ui, sans-serif;
   --body: "Figtree", "Avenir Next", "Helvetica Neue", system-ui, sans-serif;
   color-scheme: dark;
 }
@@ -64,7 +64,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
 
 /* ---------- Idle + listening ---------- */
 .topbar { display: flex; align-items: center; justify-content: space-between; height: 44px; }
-.wordmark { font-family: var(--display); font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
 .wordmark svg { width: 22px; height: 22px; }
 .icon-btn { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--mute); }
 .icon-btn svg { width: 22px; height: 22px; }
