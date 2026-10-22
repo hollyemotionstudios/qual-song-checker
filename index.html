@@ -311,13 +311,13 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
         <label>Artist<input id="f-artist" type="text"></label>
         <label>Detail line<input id="f-meta" type="text"></label>
         <label>Listening time (seconds)<input id="f-listen" type="number" min="1" max="60" step="0.5"></label>
-        <label>Reveal hold before lyrics (seconds)<input id="f-hold" type="number" min="0" max="60" step="0.5"></label>
-        <label>Lyrics advance<select id="f-mode"><option value="auto">Automatically, by timestamps</option><option value="tap">On each tap (operator cues)</option></select></label>
+        <label class="lyr-setting">Reveal hold before lyrics (seconds)<input id="f-hold" type="number" min="0" max="60" step="0.5"></label>
+        <label class="lyr-setting">Lyrics advance<select id="f-mode"><option value="auto">Automatically, by timestamps</option><option value="tap">On each tap (operator cues)</option></select></label>
       </div>
-      <label>Lyrics, one line per row as m:ss then text
+      <label class="lyr-setting">Lyrics, one line per row as m:ss then text
         <textarea id="f-lyrics" spellcheck="false"></textarea>
       </label>
-      <p>Rows without a timestamp follow the previous row by 4 seconds. A row with only ♪ shows a music break. The song clock starts 3 seconds before the first row.</p>
+      <p class="lyr-setting">Rows without a timestamp follow the previous row by 4 seconds. A row with only ♪ shows a music break. The song clock starts 3 seconds before the first row.</p>
       <div class="row">
         <button class="btn primary" type="submit">Save and close</button>
         <button class="btn" type="button" id="btnCancel">Close without saving</button>
@@ -327,8 +327,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
       <ul>
         <li><b>Reset:</b> tap anywhere along the top of the screen (it flashes faintly), or press <kbd>R</kbd> / <kbd>Esc</kbd>. Works on every screen after the start screen.</li>
         <li><b>Start listening:</b> tap the orb, or press <kbd>Space</kbd>.</li>
-        <li><b>Skip to lyrics:</b> tap the song-found screen.</li>
-        <li><b>Step lyrics:</b> <kbd>→</kbd> / <kbd>←</kbd>, or tap the lyrics in tap mode.</li>
+        <li><b>Start over:</b> tap anywhere on the song-found screen.</li>
+        <li class="lyr-setting"><b>Step lyrics:</b> <kbd>→</kbd> / <kbd>←</kbd>, or tap the lyrics in tap mode.</li>
         <li><b>Open these settings:</b> press and hold the top-right corner of the start screen, or press <kbd>S</kbd>.</li>
       </ul>
     </form>
@@ -342,7 +342,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
     artist: "Luigi Denza",
     album: "Canzoni Napoletane",
     meta: "Canzoni Napoletane · 1880",
-    listen: 5,
+    listen: 3,
     hold: 3,
     mode: "auto",
     art: "",
@@ -375,7 +375,9 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
     ].join("\n"),
     duration: 180
   };
-  const KEY = "earmark-prop-v2";
+  const KEY = "earmark-prop-v3";
+  // the synced-lyrics screen is switched off: the flow ends at "song found". Set true to bring it back.
+  const SHOW_LYRICS = false;
 
   let cfg = load();
   let lines = [];
@@ -386,6 +388,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
   let songStart = 0;       // seconds into the song when lyrics begin
   let active = -1;
   let wakeLock = null;
+  let matchAt = 0;
 
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -448,16 +451,16 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
     if (state !== "idle") return;
     requestWake();
     setState("listening");
-    const L = Math.max(1, +cfg.listen || 5);
+    const L = Math.max(1, +cfg.listen || DEFAULTS.listen);
     setPrompt("Listening for music", "Make sure your device can hear the song");
-    if (L > 3) later(() => setPrompt("Still listening…", "Hold steady"), L * 0.6);
     later(showMatch, L);
   }
 
   function showMatch() {
     setState("match");
     if (navigator.vibrate) try { navigator.vibrate(40); } catch (e) {}
-    later(showLyrics, Math.max(0, +cfg.hold || 0));
+    matchAt = performance.now();
+    if (SHOW_LYRICS) later(showLyrics, Math.max(0, +cfg.hold || 0));
   }
 
   function showLyrics() {
@@ -504,7 +507,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
   }
 
   function step(dir) {
-    if (state === "match") { if (dir > 0) showLyrics(); return; }
+    if (state === "match") { if (dir > 0) { if (SHOW_LYRICS) showLyrics(); else reset(); } return; }
     if (state !== "lyrics") return;
     const next = Math.max(0, Math.min(lines.length - 1, active + dir));
     if (cfg.mode === "tap") { setActive(next); updateTime(lines[next].t); }
@@ -545,7 +548,11 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
 
   $("#orb").addEventListener("click", startListening);
   $$("[data-close]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); reset(); }));
-  $(".s-match").addEventListener("click", () => { if (state === "match") showLyrics(); });
+  $(".s-match").addEventListener("click", () => {
+    if (state !== "match") return;
+    if (SHOW_LYRICS) showLyrics();
+    else if (performance.now() - matchAt > 600) reset(); // ignore a stray tap left over from the orb
+  });
   view.addEventListener("click", () => { if (state === "lyrics" && cfg.mode === "tap") step(1); });
   $("#hotTop").addEventListener("click", e => { e.stopPropagation(); if (state !== "idle") reset(); });
   hold($("#hotSettings"), 1200, () => { if (state === "idle") openSettings(); });
@@ -589,6 +596,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
     render(); reset(); closeSettings();
   });
 
+  if (!SHOW_LYRICS) $$(".lyr-setting").forEach(el => el.hidden = true);
   render();
   reset();
 })();
