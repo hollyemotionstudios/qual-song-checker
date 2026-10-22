@@ -30,7 +30,8 @@ base = """<!doctype html>
 <link rel="apple-touch-icon" href="icon-512.png">
 <style>
 /* the app's background runs under the notch and home bar; its content keeps clear using these */
-:root { --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px); }
+/* html:root outranks the page's own :root defaults of 0px */
+html:root { --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px); }
 body { margin: 0; font: 14px/1.4 system-ui, -apple-system, sans-serif; }
 img { max-width: 100%; }
 [hidden] { display: none !important; }

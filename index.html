@@ -27,9 +27,17 @@
   color-scheme: dark;
 }
 html, body { height: 100%; }
-html { background: var(--night); overscroll-behavior: none; }
+html { overscroll-behavior: none; }
+/* the gradient is painted on the page itself and sized to the large viewport, so it also fills
+   the areas behind a phone browser's bars instead of leaving flat navy there */
 body {
-  background: var(--night);
+  background:
+    radial-gradient(120% 70% at 50% 0%, var(--tide) 0%, transparent 70%),
+    radial-gradient(90% 60% at 50% 110%, var(--deep) 0%, transparent 70%),
+    var(--night);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-size: 100% 100lvh;
   color: var(--ink);
   font-family: var(--body);
   overflow: hidden;
@@ -47,10 +55,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
   position: relative; overflow: hidden;
   width: calc(100% / var(--s)); height: calc(100% / var(--s));
   transform: scale(var(--s)); transform-origin: 0 0;
-  background:
-    radial-gradient(120% 70% at 50% 0%, var(--tide) 0%, transparent 70%),
-    radial-gradient(90% 60% at 50% 110%, var(--deep) 0%, transparent 70%),
-    var(--night);
 }
 .screen {
   position: absolute; inset: 0;
