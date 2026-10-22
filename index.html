@@ -25,6 +25,7 @@
   color-scheme: dark;
 }
 html, body { height: 100%; }
+html { background: var(--night); overscroll-behavior: none; }
 body {
   background: var(--night);
   color: var(--ink);
@@ -589,6 +590,15 @@ button.pill:active { transform: scale(.96); }
     try { if ("wakeLock" in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => wakeLock = null); } } catch (e) {}
   }
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && state !== "idle") requestWake(); });
+
+  // on a phone, the first tap anywhere hides the browser's address bar and the system bars
+  function goFullscreen() {
+    const el = document.documentElement;
+    if (document.fullscreenElement || !el.requestFullscreen || window.self !== window.top) return;
+    if (!matchMedia("(pointer: coarse)").matches || matchMedia("(display-mode: fullscreen)").matches) return;
+    el.requestFullscreen({ navigationUI: "hide" }).catch(() => {});
+  }
+  document.addEventListener("pointerdown", goFullscreen);
 
   // long-press helper for hidden zones
   function hold(el, ms, fn) {

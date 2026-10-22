@@ -6,6 +6,13 @@ To end the flow at the song-found screen instead (a tap there starts over), set 
 
 Sized for the Samsung Galaxy Z Fold 8. The app picks its layout from the screen's shape: the front screen (1048 × 948) gets the single-column layout, scaled up to fill it, and the unfolded screen (986 × 624), or any screen wider than about 1.3:1, gets the two-column layout. Narrow phone-sized screens get the single-column layout at normal size.
 
+## Full screen on a phone
+
+- **Quickest:** open the link and tap a blank part of the start screen once before rolling. On a touch screen the first tap hides the browser's address bar and the system bars. Swiping from the edge brings them back; the next tap hides them again.
+- **Best for takes:** in Chrome or Samsung Internet, open the menu and choose **Add to Home screen** (or **Install app**). Opening it from the home screen always runs full screen, with no browser bars at all.
+
+On iPhone, Safari doesn't allow web pages to go full screen; **Add to Home Screen** there hides the address bar but keeps the status bar.
+
 ## On set
 
 | Action | How |
@@ -23,7 +30,7 @@ Crew settings (title, artist, timings, lyrics) are saved on the device that chan
 ## Files
 
 - `index.html` is the whole app. It is written without `<html>`, `<head>` or `<body>` tags so it can also be published as a Claude Artifact.
-- `build.py` wraps it into a standalone page.
+- `build.py` wraps it into a standalone page and writes the web app manifest and icons that make **Add to Home screen** open full screen.
 - `.github/workflows/pages.yml` runs that build and deploys to GitHub Pages on every push to `main`.
 - `vercel.json` tells Vercel to run the same build and serve `_site`, so the repo also deploys on Vercel.
 
