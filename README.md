@@ -11,7 +11,7 @@ Sized for the Samsung Galaxy Z Fold 8. The app picks its layout from the screen'
 - **Quickest:** open the link and tap a blank part of the start screen once before rolling. On a touch screen the first tap hides the browser's address bar and the system bars. Swiping from the edge brings them back; the next tap hides them again.
 - **Best for takes:** in Chrome or Samsung Internet, open the menu and choose **Add to Home screen** (or **Install app**). Opening it from the home screen always runs full screen, with no browser bars at all.
 
-On iPhone, Safari doesn't allow web pages to go full screen; **Add to Home Screen** there hides the address bar but keeps the status bar.
+On iPhone, Safari doesn't allow web pages to go full screen. Use **Share → Add to Home Screen**: opened from the home screen, Safari's bars are gone and the app's background runs behind the clock at the top and the home bar at the bottom.
 
 ## On set
 
