@@ -1,0 +1,596 @@
+<title>Song Match Prop</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d1b2e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one full-bleed phone screen; four stacked states (idle, listening, match, lyrics) cross-fade in place. Single deliberate dark look. */
+:root {
+  --night: #0d1b2e;
+  --deep: #12304a;
+  --tide: #1f5a73;
+  --glow: #ffb27a;
+  --ember: #ef6f6c;
+  --ink: #f6efe8;
+  --mute: rgba(246, 239, 232, 0.58);
+  --faint: rgba(246, 239, 232, 0.14);
+  --panel: #142538;
+  --display: "Bricolage Grotesque", "Avenir Next", "Helvetica Neue", system-ui, sans-serif;
+  --body: "Figtree", "Avenir Next", "Helvetica Neue", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--body);
+  overflow: hidden;
+  -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+}
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--glow); outline-offset: 3px; }
+
+.app {
+  position: relative; height: 100%; overflow: hidden;
+  background:
+    radial-gradient(120% 70% at 50% 0%, var(--tide) 0%, transparent 70%),
+    radial-gradient(90% 60% at 50% 110%, var(--deep) 0%, transparent 70%),
+    var(--night);
+}
+.screen {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 22px;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity .55s ease, visibility 0s linear .55s;
+}
+.app[data-state="idle"] .s-idle,
+.app[data-state="listening"] .s-idle,
+.app[data-state="match"] .s-match,
+.app[data-state="lyrics"] .s-lyrics {
+  opacity: 1; visibility: visible; pointer-events: auto;
+  transition: opacity .55s ease, visibility 0s;
+}
+
+/* ---------- Idle + listening ---------- */
+.topbar { display: flex; align-items: center; justify-content: space-between; height: 44px; }
+.wordmark { font-family: var(--display); font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+.wordmark svg { width: 22px; height: 22px; }
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--mute); }
+.icon-btn svg { width: 22px; height: 22px; }
+
+.stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 44px; text-align: center; }
+.prompt { font-family: var(--display); font-weight: 700; font-size: clamp(1.5rem, 6.5vw, 2rem); letter-spacing: -0.02em; text-wrap: balance; min-height: 2.6em; display: flex; flex-direction: column; justify-content: flex-end; }
+.prompt small { display: block; font-family: var(--body); font-weight: 500; font-size: .95rem; color: var(--mute); letter-spacing: 0; margin-top: 8px; min-height: 1.3em; }
+
+.orb-wrap { position: relative; width: min(64vw, 260px, 36vh); aspect-ratio: 1; max-width: 100%; display: grid; place-items: center; }
+.ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--glow); opacity: 0; }
+.orb {
+  position: relative; z-index: 2;
+  width: 100%; height: 100%; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffd2ad 0%, var(--glow) 38%, var(--ember) 100%);
+  box-shadow: 0 0 0 10px rgba(255, 178, 122, 0.10), 0 24px 60px -10px rgba(239, 111, 108, 0.55);
+  display: grid; place-items: center;
+  transition: transform .4s cubic-bezier(.3,1.4,.5,1);
+}
+.orb:active { transform: scale(.96); }
+.orb svg { width: 46%; height: 46%; color: var(--night); }
+.orb .bars { position: absolute; display: flex; gap: 6px; align-items: center; height: 34%; opacity: 0; transition: opacity .3s; }
+.orb .bars i { display: block; width: 7px; height: 30%; border-radius: 4px; background: var(--night); }
+
+.app[data-state="listening"] .orb { animation: breathe 1.6s ease-in-out infinite; }
+.app[data-state="listening"] .orb > svg { opacity: 0; }
+.app[data-state="listening"] .orb .bars { opacity: 1; }
+.app[data-state="listening"] .orb .bars i { animation: eq 0.9s ease-in-out infinite; }
+.orb .bars i:nth-child(2) { animation-delay: -.3s !important; }
+.orb .bars i:nth-child(3) { animation-delay: -.6s !important; }
+.orb .bars i:nth-child(4) { animation-delay: -.15s !important; }
+.orb .bars i:nth-child(5) { animation-delay: -.45s !important; }
+.app[data-state="listening"] .ring { animation: ripple 2.4s cubic-bezier(.2,.6,.4,1) infinite; }
+.ring:nth-of-type(2) { animation-delay: .8s !important; }
+.ring:nth-of-type(3) { animation-delay: 1.6s !important; }
+.orb > svg { transition: opacity .25s; }
+
+@keyframes breathe { 50% { transform: scale(1.05); } }
+@keyframes eq { 0%,100% { height: 22%; } 50% { height: 100%; } }
+@keyframes ripple { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(1.75); opacity: 0; } }
+
+.foot { display: flex; justify-content: center; gap: 28px; color: var(--mute); font-size: .82rem; font-weight: 600; }
+.foot span { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.foot svg { width: 22px; height: 22px; }
+
+/* ---------- Match ---------- */
+.s-match { align-items: center; text-align: center; }
+.s-match .topbar { width: 100%; }
+.match-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; width: 100%; }
+
+.app[data-state="match"] .reveal > * { animation: rise .6s ease both; }
+.reveal > *:nth-child(1) { animation-delay: .25s !important; }
+.reveal > *:nth-child(2) { animation-delay: .35s !important; }
+.reveal > *:nth-child(3) { animation-delay: .45s !important; }
+.reveal > *:nth-child(4) { animation-delay: .6s !important; }
+.app[data-state="match"] .reveal > .song-title { animation: pop .8s cubic-bezier(.2,1.3,.4,1) both; }
+@keyframes pop { from { transform: scale(.82); opacity: 0; } }
+@keyframes rise { from { transform: translateY(14px); opacity: 0; } }
+
+.reveal { display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 100%; }
+.song-title { font-family: var(--display); font-weight: 800; font-size: clamp(2.6rem, 13vw, 3.75rem); letter-spacing: -0.03em; line-height: 1; text-wrap: balance; margin-bottom: 8px; }
+.song-artist { font-size: 1.15rem; font-weight: 600; color: var(--glow); }
+.song-meta { font-size: .88rem; color: var(--mute); }
+.actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 999px; background: var(--faint); font-weight: 600; font-size: .92rem; }
+.pill.primary { background: var(--ink); color: var(--night); }
+.pill svg { width: 16px; height: 16px; }
+
+/* ---------- Lyrics ---------- */
+.s-lyrics { padding-block: 14px 18px; }
+.lyr-head { display: flex; align-items: center; gap: 12px; min-height: 56px; }
+.lyr-head .who { flex: 1; min-width: 0; }
+.lyr-head .who b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lyr-head .who span { display: block; font-size: .88rem; color: var(--glow); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app[data-state="lyrics"] .lyr-head { animation: rise .6s ease both; }
+
+.lyr-view {
+  position: relative; flex: 1; overflow: hidden; margin-block: 8px;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 70%, transparent 100%);
+          mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 70%, transparent 100%);
+}
+.lyr-track { position: absolute; left: 0; right: 0; top: 0; display: flex; flex-direction: column; gap: 22px; transition: transform .9s cubic-bezier(.25,.8,.25,1); will-change: transform; }
+.lyr-line {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(1.6rem, 7.6vw, 2.4rem); line-height: 1.15; letter-spacing: -0.02em;
+  text-wrap: balance;
+  color: var(--ink); opacity: .26;
+  transform-origin: left center;
+  transition: opacity .5s ease, transform .5s ease, color .5s ease;
+}
+.lyr-line.past { opacity: .42; }
+.lyr-line.active { opacity: 1; transform: scale(1.02); }
+.lyr-line.note { color: var(--glow); }
+
+.progress { display: flex; flex-direction: column; gap: 8px; }
+.bar { height: 4px; border-radius: 2px; background: var(--faint); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0%; background: var(--ink); border-radius: 2px; }
+.times { display: flex; justify-content: space-between; font-size: .78rem; color: var(--mute); font-variant-numeric: tabular-nums; font-weight: 600; }
+.synced { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+
+/* ---------- Hidden operator zones ---------- */
+.hot { position: absolute; z-index: 20; width: 76px; height: 76px; }
+.hot-top { left: 0; right: 0; top: 0; width: auto; z-index: 19; }
+.hot-settings { right: env(safe-area-inset-right, 0px); top: 0; }
+/* top strip resets any screen after the start; the settings corner only works on the start screen */
+.app[data-state="idle"] .hot-top,
+.app:not([data-state="idle"]) .hot-settings { pointer-events: none; }
+.flash { position: absolute; inset: 0; background: var(--ink); opacity: 0; pointer-events: none; z-index: 30; transition: opacity .35s; }
+.flash.on { opacity: .08; transition: none; }
+
+/* ---------- Settings sheet (crew only) ---------- */
+.sheet {
+  position: absolute; inset: 0; z-index: 40; overflow-y: auto;
+  background: var(--panel); color: var(--ink);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 40px;
+  -webkit-user-select: text; user-select: text;
+}
+.sheet-inner { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.sheet h2 { font-family: var(--display); font-size: 1.5rem; margin: 0; }
+.sheet p { margin: 0; color: var(--mute); font-size: .9rem; line-height: 1.5; }
+.sheet .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sheet label { display: flex; flex-direction: column; gap: 6px; font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); min-width: 0; }
+.sheet input, .sheet select, .sheet textarea {
+  font: 500 1rem var(--body); text-transform: none; letter-spacing: 0;
+  color: var(--ink); background: var(--night); border: 1px solid var(--faint); border-radius: 10px; padding: 10px 12px; width: 100%; box-sizing: border-box;
+}
+.sheet textarea { min-height: 260px; font-size: .92rem; line-height: 1.5; resize: vertical; font-variant-numeric: tabular-nums; }
+.sheet .row { display: flex; gap: 10px; flex-wrap: wrap; }
+.sheet .btn { padding: 12px 18px; border-radius: 10px; background: var(--faint); font-weight: 700; }
+.sheet .btn.primary { background: var(--glow); color: var(--night); }
+.sheet kbd { font: 600 .8rem var(--body); background: var(--night); border: 1px solid var(--faint); border-radius: 5px; padding: 1px 6px; color: var(--ink); }
+.sheet ul { margin: 0; padding-left: 18px; color: var(--mute); font-size: .9rem; line-height: 1.7; }
+@media (max-width: 420px) { .sheet .grid { grid-template-columns: 1fr; } }
+
+/* ---------- Unfolded (inner screen, landscape 4:3) ---------- */
+@media (min-width: 640px) {
+  .screen { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); }
+  .stage { gap: 36px; }
+  .orb-wrap { width: min(260px, 42vh); }
+
+  .song-title { font-size: 4.5rem; }
+  .reveal { max-width: 640px; }
+
+  .s-lyrics {
+    display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: minmax(0, 1fr) auto;
+    column-gap: 48px; padding-block: 24px;
+  }
+  .lyr-head { grid-row: 1 / span 2; position: relative; flex-direction: column; align-items: flex-start; justify-content: center; gap: 18px; }
+  .lyr-head .who { flex: none; width: 100%; }
+  .lyr-head .who b { font-size: 2.75rem; line-height: 1.02; letter-spacing: -0.03em; white-space: normal; text-wrap: balance; }
+  .lyr-head .who span { font-size: 1.15rem; margin-top: 10px; }
+  .lyr-head [data-close] { position: absolute; top: 0; left: -8px; }
+  .lyr-view { margin-block: 0 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app[data-state="listening"] .ring { animation-duration: 4s; }
+  .lyr-track { transition-duration: .3s; }
+}
+</style>
+
+<div class="app" id="app" data-state="idle">
+
+  <!-- Idle / listening -->
+  <section class="screen s-idle" aria-label="Identify a song">
+    <div class="topbar">
+      <div class="icon-btn" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      </div>
+      <div class="icon-btn" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="prompt" id="prompt">Tap to find the song<small id="subprompt">&nbsp;</small></div>
+      <div class="orb-wrap">
+        <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+        <button class="orb" id="orb" aria-label="Identify song">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17V4c2.5 1.5 5 2 6 4"/><circle cx="8.5" cy="17" r="3.5"/></svg>
+          <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        </button>
+      </div>
+      <div style="height:2.6em" aria-hidden="true"></div>
+    </div>
+
+    <div class="foot" aria-hidden="true">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Library</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Charts</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search</span>
+    </div>
+  </section>
+
+  <!-- Match reveal -->
+  <section class="screen s-match" aria-label="Song found">
+    <div class="topbar">
+      <button class="icon-btn" data-close aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <span class="synced">Song found</span>
+      <div class="icon-btn" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+      </div>
+    </div>
+    <div class="match-body">
+      <div class="reveal">
+        <div class="song-title" data-title></div>
+        <div class="song-artist" data-artist></div>
+        <div class="song-meta" data-meta></div>
+        <div class="actions" aria-hidden="true">
+          <span class="pill primary"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>Play full song</span>
+          <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Save</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Synced lyrics -->
+  <section class="screen s-lyrics" aria-label="Lyrics">
+    <div class="lyr-head">
+      <div class="who"><b data-title></b><span data-artist></span></div>
+      <button class="icon-btn" data-close aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+    </div>
+    <div class="lyr-view" id="lyrView"><div class="lyr-track" id="lyrTrack"></div></div>
+    <div class="progress">
+      <div class="bar"><i id="barFill"></i></div>
+      <div class="times"><span id="tNow">0:00</span><span class="synced">Synced lyrics</span><span id="tEnd">0:00</span></div>
+    </div>
+  </section>
+
+  <div class="hot hot-top" id="hotTop" aria-hidden="true"></div>
+  <div class="hot hot-settings" id="hotSettings" aria-hidden="true"></div>
+  <div class="flash" id="flash"></div>
+
+  <!-- Crew settings -->
+  <div class="sheet" id="sheet" hidden>
+    <form class="sheet-inner" id="settingsForm">
+      <h2>Prop settings</h2>
+      <p>These settings stay on this device. They never appear on camera.</p>
+      <div class="grid">
+        <label>Song title<input id="f-title" type="text"></label>
+        <label>Artist<input id="f-artist" type="text"></label>
+        <label>Detail line<input id="f-meta" type="text"></label>
+        <label>Listening time (seconds)<input id="f-listen" type="number" min="1" max="60" step="0.5"></label>
+        <label>Reveal hold before lyrics (seconds)<input id="f-hold" type="number" min="0" max="60" step="0.5"></label>
+        <label>Lyrics advance<select id="f-mode"><option value="auto">Automatically, by timestamps</option><option value="tap">On each tap (operator cues)</option></select></label>
+      </div>
+      <label>Lyrics, one line per row as m:ss then text
+        <textarea id="f-lyrics" spellcheck="false"></textarea>
+      </label>
+      <p>Rows without a timestamp follow the previous row by 4 seconds. A row with only ♪ shows a music break. The song clock starts 3 seconds before the first row.</p>
+      <div class="row">
+        <button class="btn primary" type="submit">Save and close</button>
+        <button class="btn" type="button" id="btnCancel">Close without saving</button>
+        <button class="btn" type="button" id="btnDefaults">Restore sample song</button>
+      </div>
+      <h2 style="font-size:1.1rem">Operator controls</h2>
+      <ul>
+        <li><b>Reset:</b> tap anywhere along the top of the screen (it flashes faintly), or press <kbd>R</kbd> / <kbd>Esc</kbd>. Works on every screen after the start screen.</li>
+        <li><b>Start listening:</b> tap the orb, or press <kbd>Space</kbd>.</li>
+        <li><b>Skip to lyrics:</b> tap the song-found screen.</li>
+        <li><b>Step lyrics:</b> <kbd>→</kbd> / <kbd>←</kbd>, or tap the lyrics in tap mode.</li>
+        <li><b>Open these settings:</b> press and hold the top-right corner of the start screen, or press <kbd>S</kbd>.</li>
+      </ul>
+    </form>
+  </div>
+</div>
+
+<script>
+(() => {
+  const DEFAULTS = {
+    title: "Funiculì, Funiculà",
+    artist: "Luigi Denza",
+    album: "Canzoni Napoletane",
+    meta: "Canzoni Napoletane · 1880",
+    listen: 5,
+    hold: 3,
+    mode: "auto",
+    art: "",
+    lyrics: [
+      "0:12 Aissera, oje Nanninè, me ne sagliette,",
+      "0:16 tu saje addò, tu saje addò",
+      "0:19 Addò 'stu core 'ngrato cchiù dispietto",
+      "0:23 farme nun pò! Farme nun pò!",
+      "0:26 Addò lo fuoco coce, ma si fuje",
+      "0:30 te lassa sta! Te lassa sta!",
+      "0:33 E nun te corre appriesso, nun te struje",
+      "0:37 sulo a guardà, sulo a guardà.",
+      "0:41 Jammo, jammo, 'ncoppa, jammo jà,",
+      "0:44 jammo, jammo, 'ncoppa, jammo jà,",
+      "0:47 funiculì, funiculà, funiculì, funiculà,",
+      "0:51 'ncoppa, jammo jà, funiculì, funiculà!",
+      "0:55 ♪",
+      "1:02 Nèh jammo: da la terra a la montagna",
+      "1:06 no passo nc'è! No passo nc'è!",
+      "1:09 Se vede Francia, Proceta e la Spagna…",
+      "1:13 Io veco a tte! Io veco a tte!",
+      "1:16 Tirato co la funa, ditto 'nfatto,",
+      "1:20 'ncielo se va, 'ncielo se va…",
+      "1:23 Se va comm'a lo viento a l'intrasatto,",
+      "1:27 gué, saglie, sà! Gué, saglie, sà!",
+      "1:31 Jammo, jammo, 'ncoppa, jammo jà,",
+      "1:34 jammo, jammo, 'ncoppa, jammo jà,",
+      "1:37 funiculì, funiculà, funiculì, funiculà,",
+      "1:41 'ncoppa, jammo jà, funiculì, funiculà!"
+    ].join("\n"),
+    duration: 180
+  };
+  const KEY = "earmark-prop-v2";
+
+  let cfg = load();
+  let lines = [];
+  let state = "idle";
+  let timers = [];
+  let raf = 0;
+  let clockStart = 0;      // performance.now() when song clock = songStart
+  let songStart = 0;       // seconds into the song when lyrics begin
+  let active = -1;
+  let wakeLock = null;
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const app = $("#app"), track = $("#lyrTrack"), view = $("#lyrView");
+
+  function load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (saved) return { ...DEFAULTS, ...saved };
+    } catch (e) {}
+    return { ...DEFAULTS };
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(cfg)); return true; } catch (e) { return false; }
+  }
+
+  function parseLyrics(text) {
+    const out = [];
+    let t = null;
+    for (const raw of text.split(/\r?\n/)) {
+      const row = raw.trim();
+      if (!row) continue;
+      const m = row.match(/^\[?(\d+):(\d{1,2}(?:\.\d+)?)\]?\s*(.*)$/);
+      let text = row;
+      if (m) { t = (+m[1]) * 60 + (+m[2]); text = m[3]; }
+      else t = t == null ? 3 : t + 4;
+      out.push({ t, text: text || "♪" });
+    }
+    return out;
+  }
+
+  const fmt = s => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+
+  function render() {
+    $$("[data-title]").forEach(el => el.textContent = cfg.title);
+    $$("[data-artist]").forEach(el => el.textContent = cfg.artist);
+    $$("[data-meta]").forEach(el => el.textContent = cfg.meta);
+    lines = parseLyrics(cfg.lyrics);
+    track.innerHTML = "";
+    lines.forEach((l, i) => {
+      const d = document.createElement("div");
+      d.className = "lyr-line" + (l.text === "♪" ? " note" : "");
+      d.textContent = l.text === "♪" ? "♪ ♪ ♪" : l.text;
+      d.dataset.i = i;
+      track.appendChild(d);
+    });
+    songStart = lines.length ? Math.max(0, lines[0].t - 3) : 0;
+    $("#tEnd").textContent = "-" + fmt(cfg.duration - songStart);
+  }
+
+  function later(fn, sec) { timers.push(setTimeout(fn, sec * 1000)); }
+  function setState(s) { state = s; app.dataset.state = s; }
+
+  function setPrompt(main, sub) {
+    $("#prompt").firstChild.nodeValue = main;
+    $("#subprompt").innerHTML = sub || "&nbsp;";
+  }
+
+  function startListening() {
+    if (state !== "idle") return;
+    requestWake();
+    setState("listening");
+    const L = Math.max(1, +cfg.listen || 5);
+    setPrompt("Listening for music", "Make sure your device can hear the song");
+    if (L > 3) later(() => setPrompt("Still listening…", "Hold steady"), L * 0.6);
+    later(showMatch, L);
+  }
+
+  function showMatch() {
+    setState("match");
+    if (navigator.vibrate) try { navigator.vibrate(40); } catch (e) {}
+    later(showLyrics, Math.max(0, +cfg.hold || 0));
+  }
+
+  function showLyrics() {
+    if (state === "lyrics") return;
+    timers.forEach(clearTimeout); timers = [];
+    setState("lyrics");
+    active = -1;
+    clockStart = performance.now();
+    if (cfg.mode === "tap") { setActive(0); updateTime(lines[0] ? lines[0].t : songStart); }
+    else { setActive(-1); tick(); }
+  }
+
+  function songNow() { return songStart + (performance.now() - clockStart) / 1000; }
+
+  function tick() {
+    const now = songNow();
+    let idx = -1;
+    for (let i = 0; i < lines.length; i++) if (lines[i].t <= now) idx = i; else break;
+    if (idx !== active) setActive(idx);
+    updateTime(now);
+    if (now < cfg.duration) raf = requestAnimationFrame(tick);
+  }
+
+  function updateTime(now) {
+    const p = Math.min(1, now / cfg.duration);
+    $("#barFill").style.width = (p * 100).toFixed(2) + "%";
+    $("#tNow").textContent = fmt(now);
+    $("#tEnd").textContent = "-" + fmt(cfg.duration - now);
+  }
+
+  function setActive(idx) {
+    active = idx;
+    const els = track.children;
+    for (let i = 0; i < els.length; i++) {
+      els[i].classList.toggle("active", i === idx);
+      els[i].classList.toggle("past", i < idx);
+    }
+    // keep the active line about a third of the way down the view
+    const target = els[Math.max(0, idx)];
+    if (!target) return;
+    const anchor = view.clientHeight * 0.34;
+    const y = idx < 0 ? anchor : anchor - target.offsetTop - target.offsetHeight / 2;
+    track.style.transform = `translateY(${Math.round(y)}px)`;
+  }
+
+  function step(dir) {
+    if (state === "match") { if (dir > 0) showLyrics(); return; }
+    if (state !== "lyrics") return;
+    const next = Math.max(0, Math.min(lines.length - 1, active + dir));
+    if (cfg.mode === "tap") { setActive(next); updateTime(lines[next].t); }
+    else {
+      // shift the clock so the chosen line is current
+      clockStart = performance.now() - (lines[next].t - songStart) * 1000;
+      cancelAnimationFrame(raf); tick();
+    }
+  }
+
+  function reset() {
+    timers.forEach(clearTimeout); timers = [];
+    cancelAnimationFrame(raf);
+    active = -1;
+    setState("idle");
+    setPrompt("Tap to find the song");
+    track.style.transition = "none";
+    setActive(-1);
+    $$(".lyr-line", track).forEach(el => el.classList.remove("active", "past"));
+    requestAnimationFrame(() => { track.style.transition = ""; });
+    updateTime(songStart);
+    const f = $("#flash"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 60);
+  }
+
+  async function requestWake() {
+    try { if ("wakeLock" in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => wakeLock = null); } } catch (e) {}
+  }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && state !== "idle") requestWake(); });
+
+  // long-press helper for hidden zones
+  function hold(el, ms, fn) {
+    let t = 0;
+    const cancel = () => clearTimeout(t);
+    el.addEventListener("pointerdown", e => { cancel(); t = setTimeout(() => { fn(); }, ms); });
+    ["pointerup", "pointerleave", "pointercancel"].forEach(ev => el.addEventListener(ev, cancel));
+    el.addEventListener("contextmenu", e => e.preventDefault());
+  }
+
+  $("#orb").addEventListener("click", startListening);
+  $$("[data-close]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); reset(); }));
+  $(".s-match").addEventListener("click", () => { if (state === "match") showLyrics(); });
+  view.addEventListener("click", () => { if (state === "lyrics" && cfg.mode === "tap") step(1); });
+  $("#hotTop").addEventListener("click", e => { e.stopPropagation(); if (state !== "idle") reset(); });
+  hold($("#hotSettings"), 1200, () => { if (state === "idle") openSettings(); });
+
+  document.addEventListener("keydown", e => {
+    if (!$("#sheet").hidden) { if (e.key === "Escape") closeSettings(); return; }
+    const k = e.key.toLowerCase();
+    if (k === " " || k === "enter") { e.preventDefault(); if (state === "idle") startListening(); else step(1); }
+    else if (k === "r" || k === "escape") reset();
+    else if (k === "arrowright" || k === "arrowdown") { e.preventDefault(); step(1); }
+    else if (k === "arrowleft" || k === "arrowup") { e.preventDefault(); step(-1); }
+    else if (k === "s" && state === "idle") openSettings();
+  });
+  window.addEventListener("resize", () => { if (state === "lyrics") setActive(active); });
+
+  // ---------- settings ----------
+  function fill(c) {
+    $("#f-title").value = c.title; $("#f-artist").value = c.artist; $("#f-meta").value = c.meta;
+    $("#f-listen").value = c.listen; $("#f-hold").value = c.hold; $("#f-mode").value = c.mode; $("#f-lyrics").value = c.lyrics;
+  }
+  function openSettings() { fill(cfg); $("#sheet").hidden = false; }
+  function closeSettings() { $("#sheet").hidden = true; }
+
+  $("#btnCancel").addEventListener("click", closeSettings);
+  $("#btnDefaults").addEventListener("click", () => { fill(DEFAULTS); });
+  $("#settingsForm").addEventListener("submit", e => {
+    e.preventDefault();
+    cfg = {
+      ...cfg,
+      title: $("#f-title").value.trim() || DEFAULTS.title,
+      artist: $("#f-artist").value.trim(),
+      meta: $("#f-meta").value.trim(),
+      listen: Math.max(1, +$("#f-listen").value || DEFAULTS.listen),
+      hold: Math.max(0, +$("#f-hold").value || 0),
+      mode: $("#f-mode").value,
+      lyrics: $("#f-lyrics").value
+    };
+    const parsed = parseLyrics(cfg.lyrics);
+    cfg.duration = Math.max(DEFAULTS.duration, parsed.length ? parsed[parsed.length - 1].t + 30 : 0);
+    save();
+    render(); reset(); closeSettings();
+  });
+
+  render();
+  reset();
+})();
+</script>
