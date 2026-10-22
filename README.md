@@ -21,6 +21,7 @@ Crew settings (title, artist, timings, lyrics) are saved on the device that chan
 - `index.html` is the whole app. It is written without `<html>`, `<head>` or `<body>` tags so it can also be published as a Claude Artifact.
 - `build.py` wraps it into a standalone page.
 - `.github/workflows/pages.yml` runs that build and deploys to GitHub Pages on every push to `main`.
+- `vercel.json` tells Vercel to run the same build and serve `_site`, so the repo also deploys on Vercel.
 
 To preview the standalone page locally:
 
