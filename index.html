@@ -38,6 +38,7 @@ body {
   background-repeat: no-repeat;
   background-size: 100% 100%;
   background-size: 100% 100lvh;
+  background-size: 100% max(100%, 100lvh);
   color: var(--ink);
   font-family: var(--body);
   overflow: hidden;
@@ -208,6 +209,7 @@ button.pill:active { transform: scale(.96); }
 .sheet-inner { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
 .sheet h2 { font-family: var(--display); font-size: 1.5rem; margin: 0; }
 .sheet p { margin: 0; color: var(--mute); font-size: .9rem; line-height: 1.5; }
+.sheet .screen-info { color: var(--ink); background: var(--night); border-radius: 10px; padding: 10px 12px; font-variant-numeric: tabular-nums; }
 .sheet .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .sheet label { display: flex; flex-direction: column; gap: 6px; font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); min-width: 0; }
 .sheet input, .sheet select, .sheet textarea {
@@ -335,6 +337,7 @@ button.pill:active { transform: scale(.96); }
     <form class="sheet-inner" id="settingsForm">
       <h2>Prop settings</h2>
       <p>These settings stay on this device. They never appear on camera.</p>
+      <p class="screen-info" id="screenInfo"></p>
       <div class="grid">
         <label>Song title<input id="f-title" type="text"></label>
         <label>Artist<input id="f-artist" type="text"></label>
@@ -655,13 +658,25 @@ button.pill:active { transform: scale(.96); }
     else if (k === "s" && state === "idle") openSettings();
   });
   // the large front screen (about 1048 × 948) shows the phone layout scaled to the height it was designed at
+  const IOS_HOME_SCREEN_APP = navigator.standalone === true;
+  function fitIosApp() {
+    if (!IOS_HOME_SCREEN_APP) return;
+    // iOS reports screen size in portrait whichever way the phone is held
+    const landscape = matchMedia("(orientation: landscape)").matches;
+    const screenH = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
+    const root = document.documentElement;
+    root.style.height = Math.max(innerHeight, screenH) + "px";
+    root.style.overflow = "hidden";
+  }
+
   const FRONT_DESIGN_HEIGHT = 658;
   function fitScale() {
     const w = document.body.clientWidth, h = document.body.clientHeight;
     const bigFront = w >= 640 && w / h < 1.3;
     app.style.setProperty("--s", bigFront ? Math.max(1, h / FRONT_DESIGN_HEIGHT).toFixed(3) : "1");
   }
-  window.addEventListener("resize", () => { fitScale(); if (state === "lyrics") setActive(active); });
+  window.addEventListener("resize", () => { fitIosApp(); fitScale(); if (state === "lyrics") setActive(active); });
+  fitIosApp();
   fitScale();
 
   // ---------- settings ----------
@@ -669,7 +684,18 @@ button.pill:active { transform: scale(.96); }
     $("#f-title").value = c.title; $("#f-artist").value = c.artist; $("#f-meta").value = c.meta;
     $("#f-listen").value = c.listen; $("#f-mode").value = c.mode; $("#f-lyrics").value = c.lyrics;
   }
-  function openSettings() { fill(cfg); $("#sheet").hidden = false; }
+  function screenInfo() {
+    const probe = document.createElement("div");
+    probe.style.cssText = "position:fixed;visibility:hidden;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)";
+    document.body.appendChild(probe);
+    const cs = getComputedStyle(probe), top = parseFloat(cs.paddingTop), bottom = parseFloat(cs.paddingBottom);
+    probe.remove();
+    const mode = ["fullscreen", "standalone", "minimal-ui"].find(m => matchMedia(`(display-mode: ${m})`).matches) || "browser";
+    const page = document.documentElement.getBoundingClientRect();
+    return `Screen ${screen.width} × ${screen.height} · window ${innerWidth} × ${innerHeight} · page ${Math.round(page.width)} × ${Math.round(page.height)}`
+      + ` · notch ${top} / home bar ${bottom} · ${mode}${navigator.standalone ? " (home-screen app)" : ""} · scale ${getComputedStyle(app).getPropertyValue("--s").trim()}`;
+  }
+  function openSettings() { fill(cfg); $("#screenInfo").textContent = screenInfo(); $("#sheet").hidden = false; }
   function closeSettings() { $("#sheet").hidden = true; }
 
   $("#btnCancel").addEventListener("click", closeSettings);
