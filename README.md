@@ -1,6 +1,6 @@
 # Song Match Prop
 
-A mock song-recognition phone app for filming. It listens for about 3 seconds, reveals **Funiculì, Funiculà**, then scrolls the Neapolitan lyrics in time with a smaller English translation under each line. Everything runs in the browser; nothing is sent anywhere.
+A mock song-recognition phone app for filming. It listens for about 3 seconds and reveals **Funiculì, Funiculà**. Tapping **Play full song** opens the lyrics screen, which scrolls the Neapolitan lyrics in time with a smaller English translation under each line, with play/pause and a progress bar you can drag. Everything runs in the browser; nothing is sent anywhere.
 
 To end the flow at the song-found screen instead (a tap there starts over), set `SHOW_LYRICS = false` in `index.html`.
 
@@ -11,7 +11,9 @@ Sized for the Samsung Galaxy Z Fold 8: the cover screen (about 416 × 658) and t
 | Action | How |
 | --- | --- |
 | Start listening | Tap the orb, or press <kbd>Space</kbd> |
-| Skip to lyrics | Tap the song-found screen, or press <kbd>Space</kbd> |
+| Open the lyrics | Tap **Play full song**, or press <kbd>Space</kbd>. The song-found screen waits until then |
+| Pause / play lyrics | Tap the play button, or press <kbd>Space</kbd> |
+| Jump in the song | Tap or drag the progress bar |
 | Step lyrics | <kbd>→</kbd> / <kbd>←</kbd>, or tap the lyrics in tap mode |
 | Reset to start | Tap anywhere along the top of the screen, or press <kbd>R</kbd> / <kbd>Esc</kbd> |
 | Crew settings | Hold the top-right corner of the start screen, or press <kbd>S</kbd> |

@@ -129,6 +129,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
 .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
 .pill { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 999px; background: var(--faint); font-weight: 600; font-size: .92rem; }
 .pill.primary { background: var(--ink); color: var(--night); }
+button.pill { cursor: pointer; transition: transform .2s ease; }
+button.pill:active { transform: scale(.96); }
 .pill svg { width: 16px; height: 16px; }
 
 /* ---------- Lyrics ---------- */
@@ -159,8 +161,17 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
 .lyr-tr { display: block; margin-top: 6px; font-size: .5em; font-weight: 600; line-height: 1.3; letter-spacing: 0; opacity: .8; }
 
 .progress { display: flex; flex-direction: column; gap: 8px; }
-.bar { height: 4px; border-radius: 2px; background: var(--faint); overflow: hidden; }
-.bar i { display: block; height: 100%; width: 0%; background: var(--ink); border-radius: 2px; }
+.scrub { padding-block: 12px; margin-block: -12px; cursor: pointer; touch-action: none; }
+.bar { position: relative; height: 4px; border-radius: 2px; background: var(--faint); }
+.bar i { position: relative; display: block; height: 100%; width: 0%; background: var(--ink); border-radius: 2px; }
+.bar i::after { content: ""; position: absolute; right: -7px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--ink); transition: transform .15s ease; }
+.scrub.dragging .bar i::after { transform: scale(1.35); }
+.transport { display: flex; justify-content: center; padding-top: 6px; }
+.play-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--ink); color: var(--night); display: grid; place-items: center; transition: transform .2s ease; }
+.play-btn:active { transform: scale(.94); }
+.play-btn svg { grid-area: 1 / 1; width: 26px; height: 26px; }
+.play-btn .i-play, .play-btn.is-paused .i-pause { display: none; }
+.play-btn.is-paused .i-play { display: block; }
 .times { display: flex; justify-content: space-between; font-size: .78rem; color: var(--mute); font-variant-numeric: tabular-nums; font-weight: 600; }
 .synced { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
 
@@ -275,9 +286,9 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
         <div class="song-title" data-title></div>
         <div class="song-artist" data-artist></div>
         <div class="song-meta" data-meta></div>
-        <div class="actions" aria-hidden="true">
-          <span class="pill primary"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>Play full song</span>
-          <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Save</span>
+        <div class="actions">
+          <button class="pill primary" id="btnPlayFull"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Play full song</button>
+          <span class="pill" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Save</span>
         </div>
       </div>
     </div>
@@ -293,8 +304,14 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
     </div>
     <div class="lyr-view" id="lyrView"><div class="lyr-track" id="lyrTrack"></div></div>
     <div class="progress">
-      <div class="bar"><i id="barFill"></i></div>
+      <div class="scrub" id="scrub" role="slider" aria-label="Song position" aria-valuemin="0" aria-valuenow="0"><div class="bar"><i id="barFill"></i></div></div>
       <div class="times"><span id="tNow">0:00</span><span class="synced">Synced lyrics</span><span id="tEnd">0:00</span></div>
+      <div class="transport">
+        <button class="play-btn" id="btnPlay" aria-label="Pause">
+          <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>
+          <svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.2-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+        </button>
+      </div>
     </div>
   </section>
 
@@ -312,7 +329,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
         <label>Artist<input id="f-artist" type="text"></label>
         <label>Detail line<input id="f-meta" type="text"></label>
         <label>Listening time (seconds)<input id="f-listen" type="number" min="1" max="60" step="0.5"></label>
-        <label class="lyr-setting">Reveal hold before lyrics (seconds)<input id="f-hold" type="number" min="0" max="60" step="0.5"></label>
         <label class="lyr-setting">Lyrics advance<select id="f-mode"><option value="auto">Automatically, by timestamps</option><option value="tap">On each tap (operator cues)</option></select></label>
       </div>
       <label class="lyr-setting">Lyrics, one line per row as m:ss then text
@@ -328,7 +344,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
       <ul>
         <li><b>Reset:</b> tap anywhere along the top of the screen (it flashes faintly), or press <kbd>R</kbd> / <kbd>Esc</kbd>. Works on every screen after the start screen.</li>
         <li><b>Start listening:</b> tap the orb, or press <kbd>Space</kbd>.</li>
-        <li><b>Start over:</b> tap anywhere on the song-found screen.</li>
+        <li><b>Open the lyrics:</b> tap <b>Play full song</b> on the song-found screen, or press <kbd>Space</kbd>. The screen waits there until then.</li>
+        <li class="lyr-setting"><b>Pause / play lyrics:</b> tap the play button, or press <kbd>Space</kbd>. Tap or drag the progress bar to jump.</li>
         <li class="lyr-setting"><b>Step lyrics:</b> <kbd>→</kbd> / <kbd>←</kbd>, or tap the lyrics in tap mode.</li>
         <li><b>Open these settings:</b> press and hold the top-right corner of the start screen, or press <kbd>S</kbd>.</li>
       </ul>
@@ -344,7 +361,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
     album: "Canzoni Napoletane",
     meta: "Canzoni Napoletane · 1880",
     listen: 3,
-    hold: 3,
     mode: "auto",
     art: "",
     lyrics: [
@@ -386,6 +402,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
   let timers = [];
   let raf = 0;
   let clockStart = 0;      // performance.now() when song clock = songStart
+  let paused = false;
+  let pausedAt = 0;        // song time held while paused
   let songStart = 0;       // seconds into the song when lyrics begin
   let active = -1;
   let wakeLock = null;
@@ -440,6 +458,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
       track.appendChild(d);
     });
     songStart = lines.length ? Math.max(0, lines[0].t - 3) : 0;
+    $("#btnPlay").hidden = cfg.mode === "tap";
     $("#tEnd").textContent = "-" + fmt(cfg.duration - songStart);
   }
 
@@ -464,7 +483,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
     setState("match");
     if (navigator.vibrate) try { navigator.vibrate(40); } catch (e) {}
     matchAt = performance.now();
-    if (SHOW_LYRICS) later(showLyrics, Math.max(0, +cfg.hold || 0));
   }
 
   function showLyrics() {
@@ -472,20 +490,49 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
     timers.forEach(clearTimeout); timers = [];
     setState("lyrics");
     active = -1;
+    paused = false; updatePlayButton();
     clockStart = performance.now();
     if (cfg.mode === "tap") { setActive(0); updateTime(lines[0] ? lines[0].t : songStart); }
     else { setActive(-1); tick(); }
   }
 
-  function songNow() { return songStart + (performance.now() - clockStart) / 1000; }
+  function songNow() { return paused ? pausedAt : songStart + (performance.now() - clockStart) / 1000; }
 
   function tick() {
-    const now = songNow();
+    const now = Math.min(songNow(), cfg.duration);
     let idx = -1;
     for (let i = 0; i < lines.length; i++) if (lines[i].t <= now) idx = i; else break;
     if (idx !== active) setActive(idx);
     updateTime(now);
+    if (paused) return;
     if (now < cfg.duration) raf = requestAnimationFrame(tick);
+    else { paused = true; pausedAt = cfg.duration; updatePlayButton(); }  // song over: show play
+  }
+
+  // move the song clock to t seconds, staying paused or playing
+  function seek(t) {
+    t = Math.max(0, Math.min(cfg.duration, t));
+    cancelAnimationFrame(raf);
+    if (cfg.mode === "tap") {
+      let idx = 0;
+      for (let i = 0; i < lines.length; i++) if (lines[i].t <= t) idx = i;
+      setActive(idx); updateTime(t); return;
+    }
+    if (paused) pausedAt = t; else clockStart = performance.now() - (t - songStart) * 1000;
+    tick();
+  }
+
+  function setPaused(p) {
+    if (state !== "lyrics" || cfg.mode === "tap" || p === paused) return;
+    if (p) { pausedAt = songNow(); paused = true; cancelAnimationFrame(raf); }
+    else { const from = pausedAt >= cfg.duration ? songStart : pausedAt; paused = false; seek(from); }
+    updatePlayButton();
+  }
+
+  function updatePlayButton() {
+    const b = $("#btnPlay");
+    b.classList.toggle("is-paused", paused);
+    b.setAttribute("aria-label", paused ? "Play" : "Pause");
   }
 
   function updateTime(now) {
@@ -493,6 +540,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
     $("#barFill").style.width = (p * 100).toFixed(2) + "%";
     $("#tNow").textContent = fmt(now);
     $("#tEnd").textContent = "-" + fmt(cfg.duration - now);
+    $("#scrub").setAttribute("aria-valuenow", Math.round(now));
   }
 
   function setActive(idx) {
@@ -515,17 +563,14 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
     if (state !== "lyrics") return;
     const next = Math.max(0, Math.min(lines.length - 1, active + dir));
     if (cfg.mode === "tap") { setActive(next); updateTime(lines[next].t); }
-    else {
-      // shift the clock so the chosen line is current
-      clockStart = performance.now() - (lines[next].t - songStart) * 1000;
-      cancelAnimationFrame(raf); tick();
-    }
+    else seek(lines[next].t);
   }
 
   function reset() {
     timers.forEach(clearTimeout); timers = [];
     cancelAnimationFrame(raf);
     active = -1;
+    paused = false; updatePlayButton();
     setState("idle");
     setPrompt("Tap to find the song");
     track.style.transition = "none";
@@ -552,19 +597,38 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
 
   $("#orb").addEventListener("click", startListening);
   $$("[data-close]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); reset(); }));
-  $(".s-match").addEventListener("click", () => {
+  // with lyrics on, only "Play full song" moves on; with lyrics off, a tap anywhere starts over
+  $("#btnPlayFull").addEventListener("click", e => {
+    e.stopPropagation();
     if (state !== "match") return;
-    if (SHOW_LYRICS) showLyrics();
-    else if (performance.now() - matchAt > 600) reset(); // ignore a stray tap left over from the orb
+    if (SHOW_LYRICS) showLyrics(); else reset();
+  });
+  $(".s-match").addEventListener("click", () => {
+    if (state !== "match" || SHOW_LYRICS) return;
+    if (performance.now() - matchAt > 600) reset(); // ignore a stray tap left over from the orb
   });
   view.addEventListener("click", () => { if (state === "lyrics" && cfg.mode === "tap") step(1); });
+  $("#btnPlay").addEventListener("click", e => { e.stopPropagation(); setPaused(!paused); });
+  const scrub = $("#scrub");
+  const seekTo = e => { const r = scrub.getBoundingClientRect(); seek((e.clientX - r.left) / r.width * cfg.duration); };
+  scrub.addEventListener("pointerdown", e => {
+    if (state !== "lyrics") return;
+    scrub.setPointerCapture(e.pointerId); scrub.classList.add("dragging"); seekTo(e);
+  });
+  scrub.addEventListener("pointermove", e => { if (scrub.classList.contains("dragging")) seekTo(e); });
+  ["pointerup", "pointercancel"].forEach(ev => scrub.addEventListener(ev, () => scrub.classList.remove("dragging")));
   $("#hotTop").addEventListener("click", e => { e.stopPropagation(); if (state !== "idle") reset(); });
   hold($("#hotSettings"), 1200, () => { if (state === "idle") openSettings(); });
 
   document.addEventListener("keydown", e => {
     if (!$("#sheet").hidden) { if (e.key === "Escape") closeSettings(); return; }
     const k = e.key.toLowerCase();
-    if (k === " " || k === "enter") { e.preventDefault(); if (state === "idle") startListening(); else step(1); }
+    if (k === " " || k === "enter") {
+      e.preventDefault();
+      if (state === "idle") startListening();
+      else if (state === "lyrics" && cfg.mode !== "tap") setPaused(!paused);
+      else step(1);
+    }
     else if (k === "r" || k === "escape") reset();
     else if (k === "arrowright" || k === "arrowdown") { e.preventDefault(); step(1); }
     else if (k === "arrowleft" || k === "arrowup") { e.preventDefault(); step(-1); }
@@ -575,7 +639,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
   // ---------- settings ----------
   function fill(c) {
     $("#f-title").value = c.title; $("#f-artist").value = c.artist; $("#f-meta").value = c.meta;
-    $("#f-listen").value = c.listen; $("#f-hold").value = c.hold; $("#f-mode").value = c.mode; $("#f-lyrics").value = c.lyrics;
+    $("#f-listen").value = c.listen; $("#f-mode").value = c.mode; $("#f-lyrics").value = c.lyrics;
   }
   function openSettings() { fill(cfg); $("#sheet").hidden = false; }
   function closeSettings() { $("#sheet").hidden = true; }
@@ -590,7 +654,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
       artist: $("#f-artist").value.trim(),
       meta: $("#f-meta").value.trim(),
       listen: Math.max(1, +$("#f-listen").value || DEFAULTS.listen),
-      hold: Math.max(0, +$("#f-hold").value || 0),
       mode: $("#f-mode").value,
       lyrics: $("#f-lyrics").value
     };
