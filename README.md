@@ -1,8 +1,8 @@
 # Song Match Prop
 
-A mock song-recognition phone app for filming. It listens for about 3 seconds, then reveals **Funiculì, Funiculà**. Tapping the song-found screen goes back to the start. Everything runs in the browser; nothing is sent anywhere.
+A mock song-recognition phone app for filming. It listens for about 3 seconds, reveals **Funiculì, Funiculà**, then scrolls the Neapolitan lyrics in time with a smaller English translation under each line. Everything runs in the browser; nothing is sent anywhere.
 
-A synced-lyrics screen is built in but switched off. To bring it back, set `SHOW_LYRICS = true` in `index.html`.
+To end the flow at the song-found screen instead (a tap there starts over), set `SHOW_LYRICS = false` in `index.html`.
 
 Sized for the Samsung Galaxy Z Fold 8: the cover screen (about 416 × 658) and the unfolded screen (about 816 × 616) get their own layouts.
 
@@ -11,11 +11,12 @@ Sized for the Samsung Galaxy Z Fold 8: the cover screen (about 416 × 658) and t
 | Action | How |
 | --- | --- |
 | Start listening | Tap the orb, or press <kbd>Space</kbd> |
-| Start over from song found | Tap anywhere on the song-found screen, or press <kbd>Space</kbd> |
+| Skip to lyrics | Tap the song-found screen, or press <kbd>Space</kbd> |
+| Step lyrics | <kbd>→</kbd> / <kbd>←</kbd>, or tap the lyrics in tap mode |
 | Reset to start | Tap anywhere along the top of the screen, or press <kbd>R</kbd> / <kbd>Esc</kbd> |
 | Crew settings | Hold the top-right corner of the start screen, or press <kbd>S</kbd> |
 
-Crew settings (title, artist, detail line, listening time) are saved on the device that changed them.
+Crew settings (title, artist, timings, lyrics) are saved on the device that changed them. Each lyric row is `m:ss Neapolitan line | English translation`; the translation is optional.
 
 ## Files
 

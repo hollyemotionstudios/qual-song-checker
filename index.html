@@ -156,6 +156,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
 .lyr-line.past { opacity: .42; }
 .lyr-line.active { opacity: 1; transform: scale(1.02); }
 .lyr-line.note { color: var(--glow); }
+.lyr-tr { display: block; margin-top: 6px; font-size: .5em; font-weight: 600; line-height: 1.3; letter-spacing: 0; opacity: .8; }
 
 .progress { display: flex; flex-direction: column; gap: 8px; }
 .bar { height: 4px; border-radius: 2px; background: var(--faint); overflow: hidden; }
@@ -317,7 +318,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
       <label class="lyr-setting">Lyrics, one line per row as m:ss then text
         <textarea id="f-lyrics" spellcheck="false"></textarea>
       </label>
-      <p class="lyr-setting">Rows without a timestamp follow the previous row by 4 seconds. A row with only ♪ shows a music break. The song clock starts 3 seconds before the first row.</p>
+      <p class="lyr-setting">Add an English translation after a bar, for example <code>0:12 Aissera… | Last night…</code>. Rows without a timestamp follow the previous row by 4 seconds. A row with only ♪ shows a music break. The song clock starts 3 seconds before the first row.</p>
       <div class="row">
         <button class="btn primary" type="submit">Save and close</button>
         <button class="btn" type="button" id="btnCancel">Close without saving</button>
@@ -347,37 +348,37 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
     mode: "auto",
     art: "",
     lyrics: [
-      "0:12 Aissera, oje Nanninè, me ne sagliette,",
-      "0:16 tu saje addò, tu saje addò",
-      "0:19 Addò 'stu core 'ngrato cchiù dispietto",
-      "0:23 farme nun pò! Farme nun pò!",
-      "0:26 Addò lo fuoco coce, ma si fuje",
-      "0:30 te lassa sta! Te lassa sta!",
-      "0:33 E nun te corre appriesso, nun te struje",
-      "0:37 sulo a guardà, sulo a guardà.",
-      "0:41 Jammo, jammo, 'ncoppa, jammo jà,",
-      "0:44 jammo, jammo, 'ncoppa, jammo jà,",
-      "0:47 funiculì, funiculà, funiculì, funiculà,",
-      "0:51 'ncoppa, jammo jà, funiculì, funiculà!",
+      "0:12 Aissera, oje Nanninè, me ne sagliette, | Last night, oh Nannina, I went up,",
+      "0:16 tu saje addò, tu saje addò | you know where, you know where",
+      "0:19 Addò 'stu core 'ngrato cchiù dispietto | where this ungrateful heart",
+      "0:23 farme nun pò! Farme nun pò! | can't hurt me any more! It can't!",
+      "0:26 Addò lo fuoco coce, ma si fuje | Where the fire burns, but if you run",
+      "0:30 te lassa sta! Te lassa sta! | it lets you be! It lets you be!",
+      "0:33 E nun te corre appriesso, nun te struje | It doesn't chase you, doesn't wear you down",
+      "0:37 sulo a guardà, sulo a guardà. | just by looking, just by looking.",
+      "0:41 Jammo, jammo, 'ncoppa, jammo jà, | Let's go, let's go, up top, let's go,",
+      "0:44 jammo, jammo, 'ncoppa, jammo jà, | let's go, let's go, up top, let's go,",
+      "0:47 funiculì, funiculà, funiculì, funiculà, | up the funicular, up the funicular,",
+      "0:51 'ncoppa, jammo jà, funiculì, funiculà! | up top, let's go, up the funicular!",
       "0:55 ♪",
-      "1:02 Nèh jammo: da la terra a la montagna",
-      "1:06 no passo nc'è! No passo nc'è!",
-      "1:09 Se vede Francia, Proceta e la Spagna…",
-      "1:13 Io veco a tte! Io veco a tte!",
-      "1:16 Tirato co la funa, ditto 'nfatto,",
-      "1:20 'ncielo se va, 'ncielo se va…",
-      "1:23 Se va comm'a lo viento a l'intrasatto,",
-      "1:27 gué, saglie, sà! Gué, saglie, sà!",
-      "1:31 Jammo, jammo, 'ncoppa, jammo jà,",
-      "1:34 jammo, jammo, 'ncoppa, jammo jà,",
-      "1:37 funiculì, funiculà, funiculì, funiculà,",
-      "1:41 'ncoppa, jammo jà, funiculì, funiculà!"
+      "1:02 Nèh jammo: da la terra a la montagna | Come on, let's go: from the ground to the mountain",
+      "1:06 no passo nc'è! No passo nc'è! | is just one step! Just one step!",
+      "1:09 Se vede Francia, Proceta e la Spagna… | You can see France, Procida and Spain…",
+      "1:13 Io veco a tte! Io veco a tte! | and I see you! I see you!",
+      "1:16 Tirato co la funa, ditto 'nfatto, | Pulled by the cable, quick as a word,",
+      "1:20 'ncielo se va, 'ncielo se va… | up to the sky we go, up to the sky…",
+      "1:23 Se va comm'a lo viento a l'intrasatto, | We go like the wind, all of a sudden,",
+      "1:27 gué, saglie, sà! Gué, saglie, sà! | hey, up we climb! Hey, up we climb!",
+      "1:31 Jammo, jammo, 'ncoppa, jammo jà, | Let's go, let's go, up top, let's go,",
+      "1:34 jammo, jammo, 'ncoppa, jammo jà, | let's go, let's go, up top, let's go,",
+      "1:37 funiculì, funiculà, funiculì, funiculà, | up the funicular, up the funicular,",
+      "1:41 'ncoppa, jammo jà, funiculì, funiculà! | up top, let's go, up the funicular!"
     ].join("\n"),
     duration: 180
   };
-  const KEY = "earmark-prop-v3";
-  // the synced-lyrics screen is switched off: the flow ends at "song found". Set true to bring it back.
-  const SHOW_LYRICS = false;
+  const KEY = "earmark-prop-v4";
+  // false ends the flow at "song found" (a tap there starts over) and hides the lyrics settings
+  const SHOW_LYRICS = true;
 
   let cfg = load();
   let lines = [];
@@ -415,7 +416,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
       let text = row;
       if (m) { t = (+m[1]) * 60 + (+m[2]); text = m[3]; }
       else t = t == null ? 3 : t + 4;
-      out.push({ t, text: text || "♪" });
+      const [main, tr = ""] = text.split(/\s+\|\s+/);
+      out.push({ t, text: main || "♪", tr: tr.trim() });
     }
     return out;
   }
@@ -432,6 +434,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
       const d = document.createElement("div");
       d.className = "lyr-line" + (l.text === "♪" ? " note" : "");
       d.textContent = l.text === "♪" ? "♪ ♪ ♪" : l.text;
+      d.lang = "nap";
+      if (l.tr) { const en = document.createElement("span"); en.className = "lyr-tr"; en.lang = "en"; en.textContent = l.tr; d.appendChild(en); }
       d.dataset.i = i;
       track.appendChild(d);
     });
