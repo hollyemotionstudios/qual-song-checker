@@ -4,7 +4,7 @@ A mock song-recognition phone app for filming. It listens for about 3 seconds an
 
 To end the flow at the song-found screen instead (a tap there starts over), set `SHOW_LYRICS = false` in `index.html`.
 
-Sized for the Samsung Galaxy Z Fold 8: the cover screen (about 416 × 658) and the unfolded screen (about 816 × 616) get their own layouts.
+Sized for the Samsung Galaxy Z Fold 8: the cover screen (about 416 × 658) and the unfolded screen (986 × 624) get their own layouts.
 
 ## On set
 
