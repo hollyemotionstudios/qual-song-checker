@@ -336,12 +336,13 @@ button.pill:active { transform: scale(.96); }
       <div class="grid">
         <label>Song title<input id="f-title" type="text"></label>
         <label>Listening time (seconds)<input id="f-listen" type="number" min="1" max="60" step="0.5"></label>
+        <label class="lyr-setting">Player starts at (m:ss)<input id="f-start" type="text" inputmode="numeric" placeholder="0:46"></label>
         <label class="lyr-setting">Lyrics advance<select id="f-mode"><option value="auto">Automatically, by timestamps</option><option value="tap">On each tap (operator cues)</option></select></label>
       </div>
       <label class="lyr-setting">Lyrics, one line per row as m:ss then text
         <textarea id="f-lyrics" spellcheck="false"></textarea>
       </label>
-      <p class="lyr-setting">Add an English translation after a bar, for example <code>0:12 Aissera… | Last night…</code>. Rows without a timestamp follow the previous row by 4 seconds. A row with only ♪ shows a music break. The player starts at 0:00.</p>
+      <p class="lyr-setting">Add an English translation after a bar, for example <code>0:12 Aissera… | Last night…</code>. Rows without a timestamp follow the previous row by 4 seconds. A row with only ♪ shows a music break. Play full song starts the player at the time set above.</p>
       <div class="row">
         <button class="btn primary" type="submit">Save and close</button>
         <button class="btn" type="button" id="btnCancel">Close without saving</button>
@@ -365,6 +366,7 @@ button.pill:active { transform: scale(.96); }
   const DEFAULTS = {
     title: "Funiculì, Funiculà",
     listen: 3,
+    start: "0:46",
     mode: "auto",
     lyrics: [
       "0:12 Aissera, oje Nanninè, me ne sagliette, | Last night, oh Nannina, I went up,",
@@ -375,27 +377,27 @@ button.pill:active { transform: scale(.96); }
       "0:30 te lassa sta! Te lassa sta! | it lets you be! It lets you be!",
       "0:33 E nun te corre appriesso, nun te struje | It doesn't chase you, doesn't wear you down",
       "0:37 sulo a guardà, sulo a guardà. | just by looking, just by looking.",
-      "0:41 Jammo, jammo, 'ncoppa, jammo jà, | Let's go, let's go, up top, let's go,",
-      "0:44 jammo, jammo, 'ncoppa, jammo jà, | let's go, let's go, up top, let's go,",
-      "0:47 funiculì, funiculà, funiculì, funiculà, | up the funicular, up the funicular,",
-      "0:51 'ncoppa, jammo jà, funiculì, funiculà! | up top, let's go, up the funicular!",
-      "0:55 ♪",
-      "1:02 Nèh jammo: da la terra a la montagna | Come on, let's go: from the ground to the mountain",
-      "1:06 no passo nc'è! No passo nc'è! | is just one step! Just one step!",
-      "1:09 Se vede Francia, Proceta e la Spagna… | You can see France, Procida and Spain…",
-      "1:13 Io veco a tte! Io veco a tte! | and I see you! I see you!",
-      "1:16 Tirato co la funa, ditto 'nfatto, | Pulled by the cable, quick as a word,",
-      "1:20 'ncielo se va, 'ncielo se va… | up to the sky we go, up to the sky…",
-      "1:23 Se va comm'a lo viento a l'intrasatto, | We go like the wind, all of a sudden,",
-      "1:27 gué, saglie, sà! Gué, saglie, sà! | hey, up we climb! Hey, up we climb!",
-      "1:31 Jammo, jammo, 'ncoppa, jammo jà, | Let's go, let's go, up top, let's go,",
-      "1:34 jammo, jammo, 'ncoppa, jammo jà, | let's go, let's go, up top, let's go,",
-      "1:37 funiculì, funiculà, funiculì, funiculà, | up the funicular, up the funicular,",
-      "1:41 'ncoppa, jammo jà, funiculì, funiculà! | up top, let's go, up the funicular!"
+      "0:46 Jammo, jammo, 'ncoppa, jammo jà, | Let's go, let's go, up top, let's go,",
+      "0:49 jammo, jammo, 'ncoppa, jammo jà, | let's go, let's go, up top, let's go,",
+      "0:52 funiculì, funiculà, funiculì, funiculà, | up the funicular, up the funicular,",
+      "0:56 'ncoppa, jammo jà, funiculì, funiculà! | up top, let's go, up the funicular!",
+      "1:00 ♪",
+      "1:07 Nèh jammo: da la terra a la montagna | Come on, let's go: from the ground to the mountain",
+      "1:11 no passo nc'è! No passo nc'è! | is just one step! Just one step!",
+      "1:14 Se vede Francia, Proceta e la Spagna… | You can see France, Procida and Spain…",
+      "1:18 Io veco a tte! Io veco a tte! | and I see you! I see you!",
+      "1:21 Tirato co la funa, ditto 'nfatto, | Pulled by the cable, quick as a word,",
+      "1:25 'ncielo se va, 'ncielo se va… | up to the sky we go, up to the sky…",
+      "1:28 Se va comm'a lo viento a l'intrasatto, | We go like the wind, all of a sudden,",
+      "1:32 gué, saglie, sà! Gué, saglie, sà! | hey, up we climb! Hey, up we climb!",
+      "1:36 Jammo, jammo, 'ncoppa, jammo jà, | Let's go, let's go, up top, let's go,",
+      "1:39 jammo, jammo, 'ncoppa, jammo jà, | let's go, let's go, up top, let's go,",
+      "1:42 funiculì, funiculà, funiculì, funiculà, | up the funicular, up the funicular,",
+      "1:46 'ncoppa, jammo jà, funiculì, funiculà! | up top, let's go, up the funicular!"
     ].join("\n"),
     duration: 180
   };
-  const KEY = "earmark-prop-v4";
+  const KEY = "earmark-prop-v5";
   // false ends the flow at "song found" (a tap there starts over) and hides the lyrics settings
   const SHOW_LYRICS = true;
 
@@ -443,6 +445,8 @@ button.pill:active { transform: scale(.96); }
     return out;
   }
 
+  // "m:ss" or plain seconds -> seconds
+  const toSeconds = v => { const m = String(v).trim().match(/^(\d+):(\d{1,2})$/); return m ? +m[1] * 60 + +m[2] : Math.max(0, +v || 0); };
   const fmt = s => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
 
   function render() {
@@ -458,7 +462,7 @@ button.pill:active { transform: scale(.96); }
       d.dataset.i = i;
       track.appendChild(d);
     });
-    songStart = 0;
+    songStart = Math.min(toSeconds(cfg.start), cfg.duration);
     $("#btnPlay").hidden = cfg.mode === "tap";
     $("#tEnd").textContent = "-" + fmt(cfg.duration - songStart);
   }
@@ -674,7 +678,7 @@ button.pill:active { transform: scale(.96); }
   // ---------- settings ----------
   function fill(c) {
     $("#f-title").value = c.title;
-    $("#f-listen").value = c.listen; $("#f-mode").value = c.mode; $("#f-lyrics").value = c.lyrics;
+    $("#f-listen").value = c.listen; $("#f-start").value = c.start; $("#f-mode").value = c.mode; $("#f-lyrics").value = c.lyrics;
   }
   function screenInfo() {
     const probe = document.createElement("div");
@@ -698,6 +702,7 @@ button.pill:active { transform: scale(.96); }
       ...cfg,
       title: $("#f-title").value.trim() || DEFAULTS.title,
       listen: Math.max(1, +$("#f-listen").value || DEFAULTS.listen),
+      start: fmt(toSeconds($("#f-start").value || DEFAULTS.start)),
       mode: $("#f-mode").value,
       lyrics: $("#f-lyrics").value
     };
