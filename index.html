@@ -136,7 +136,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
 
 .reveal { display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 100%; }
 .song-title { font-family: var(--display); font-weight: 800; font-size: clamp(2.6rem, 13vw, 3.75rem); letter-spacing: -0.03em; line-height: 1; text-wrap: balance; margin-bottom: 8px; }
-.song-artist { font-size: 1.15rem; font-weight: 600; color: var(--ink); }
 .song-meta { font-size: .88rem; color: var(--mute); }
 .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
 .pill { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 999px; background: var(--faint); font-weight: 600; font-size: .92rem; }
@@ -150,7 +149,6 @@ button.pill:active { transform: scale(.96); }
 .lyr-head { display: flex; align-items: center; gap: 12px; min-height: 56px; }
 .lyr-head .who { flex: 1; min-width: 0; }
 .lyr-head .who b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lyr-head .who span { display: block; font-size: .88rem; color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .app[data-state="lyrics"] .lyr-head { animation: rise .6s ease both; }
 
 .lyr-view {
@@ -241,7 +239,6 @@ button.pill:active { transform: scale(.96); }
   .lyr-head { grid-row: 1 / span 2; position: relative; flex-direction: column; align-items: flex-start; justify-content: center; gap: 18px; }
   .lyr-head .who { flex: none; width: 100%; }
   .lyr-head .who b { font-size: 2.75rem; line-height: 1.02; letter-spacing: -0.03em; white-space: normal; text-wrap: balance; }
-  .lyr-head .who span { font-size: 1.15rem; margin-top: 10px; }
   .lyr-head [data-close] { position: absolute; top: 0; left: -8px; }
   .lyr-view { margin-block: 0 12px; }
 }
@@ -298,7 +295,6 @@ button.pill:active { transform: scale(.96); }
     <div class="match-body">
       <div class="reveal">
         <div class="song-title" data-title></div>
-        <div class="song-artist" data-artist></div>
         <div class="song-meta" data-meta></div>
         <div class="actions">
           <button class="pill primary" id="btnPlayFull"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Play full song</button>
@@ -311,7 +307,7 @@ button.pill:active { transform: scale(.96); }
   <!-- Synced lyrics -->
   <section class="screen s-lyrics" aria-label="Lyrics">
     <div class="lyr-head">
-      <div class="who"><b data-title></b><span data-artist></span></div>
+      <div class="who"><b data-title></b></div>
       <button class="icon-btn" data-close aria-label="Close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
       </button>
@@ -341,7 +337,6 @@ button.pill:active { transform: scale(.96); }
       <p class="screen-info" id="screenInfo"></p>
       <div class="grid">
         <label>Song title<input id="f-title" type="text"></label>
-        <label>Artist<input id="f-artist" type="text"></label>
         <label>Detail line<input id="f-meta" type="text"></label>
         <label>Listening time (seconds)<input id="f-listen" type="number" min="1" max="60" step="0.5"></label>
         <label class="lyr-setting">Lyrics advance<select id="f-mode"><option value="auto">Automatically, by timestamps</option><option value="tap">On each tap (operator cues)</option></select></label>
@@ -372,7 +367,6 @@ button.pill:active { transform: scale(.96); }
 (() => {
   const DEFAULTS = {
     title: "Funiculì, Funiculà",
-    artist: "Luigi Denza",
     album: "Canzoni Napoletane",
     meta: "Canzoni Napoletane · 1880",
     listen: 3,
@@ -459,7 +453,6 @@ button.pill:active { transform: scale(.96); }
 
   function render() {
     $$("[data-title]").forEach(el => el.textContent = cfg.title);
-    $$("[data-artist]").forEach(el => el.textContent = cfg.artist);
     $$("[data-meta]").forEach(el => el.textContent = cfg.meta);
     lines = parseLyrics(cfg.lyrics);
     track.innerHTML = "";
@@ -687,7 +680,7 @@ button.pill:active { transform: scale(.96); }
 
   // ---------- settings ----------
   function fill(c) {
-    $("#f-title").value = c.title; $("#f-artist").value = c.artist; $("#f-meta").value = c.meta;
+    $("#f-title").value = c.title; $("#f-meta").value = c.meta;
     $("#f-listen").value = c.listen; $("#f-mode").value = c.mode; $("#f-lyrics").value = c.lyrics;
   }
   function screenInfo() {
@@ -711,7 +704,6 @@ button.pill:active { transform: scale(.96); }
     cfg = {
       ...cfg,
       title: $("#f-title").value.trim() || DEFAULTS.title,
-      artist: $("#f-artist").value.trim(),
       meta: $("#f-meta").value.trim(),
       listen: Math.max(1, +$("#f-listen").value || DEFAULTS.listen),
       mode: $("#f-mode").value,

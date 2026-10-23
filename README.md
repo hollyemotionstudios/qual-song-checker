@@ -26,7 +26,7 @@ On iPhone, Safari doesn't allow web pages to go full screen. Use **Share → Add
 | Crew settings | Hold the top-right corner of the start screen, or press <kbd>S</kbd> |
 | Screen info | Shown at the top of crew settings: the screen, window and page sizes, notch and home-bar spacing, and how the app was opened. Useful for checking a new phone |
 
-Crew settings (title, artist, timings, lyrics) are saved on the device that changed them. Each lyric row is `m:ss Neapolitan line | English translation`; the translation is optional.
+Crew settings (title, detail line, timings, lyrics) are saved on the device that changed them. Each lyric row is `m:ss Neapolitan line | English translation`; the translation is optional.
 
 ## Files
 
