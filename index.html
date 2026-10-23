@@ -136,7 +136,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
 
 .reveal { display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 100%; }
 .song-title { font-family: var(--display); font-weight: 800; font-size: clamp(2.6rem, 13vw, 3.75rem); letter-spacing: -0.03em; line-height: 1; text-wrap: balance; margin-bottom: 8px; }
-.song-meta { font-size: .88rem; color: var(--mute); }
 .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
 .pill { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 999px; background: var(--faint); font-weight: 600; font-size: .92rem; }
 .pill.primary { background: var(--ink); color: var(--night); }
@@ -295,7 +294,6 @@ button.pill:active { transform: scale(.96); }
     <div class="match-body">
       <div class="reveal">
         <div class="song-title" data-title></div>
-        <div class="song-meta" data-meta></div>
         <div class="actions">
           <button class="pill primary" id="btnPlayFull"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Play full song</button>
           <span class="pill" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Save</span>
@@ -337,7 +335,6 @@ button.pill:active { transform: scale(.96); }
       <p class="screen-info" id="screenInfo"></p>
       <div class="grid">
         <label>Song title<input id="f-title" type="text"></label>
-        <label>Detail line<input id="f-meta" type="text"></label>
         <label>Listening time (seconds)<input id="f-listen" type="number" min="1" max="60" step="0.5"></label>
         <label class="lyr-setting">Lyrics advance<select id="f-mode"><option value="auto">Automatically, by timestamps</option><option value="tap">On each tap (operator cues)</option></select></label>
       </div>
@@ -367,11 +364,8 @@ button.pill:active { transform: scale(.96); }
 (() => {
   const DEFAULTS = {
     title: "Funiculì, Funiculà",
-    album: "Canzoni Napoletane",
-    meta: "Canzoni Napoletane · 1880",
     listen: 3,
     mode: "auto",
-    art: "",
     lyrics: [
       "0:12 Aissera, oje Nanninè, me ne sagliette, | Last night, oh Nannina, I went up,",
       "0:16 tu saje addò, tu saje addò | you know where, you know where",
@@ -453,7 +447,6 @@ button.pill:active { transform: scale(.96); }
 
   function render() {
     $$("[data-title]").forEach(el => el.textContent = cfg.title);
-    $$("[data-meta]").forEach(el => el.textContent = cfg.meta);
     lines = parseLyrics(cfg.lyrics);
     track.innerHTML = "";
     lines.forEach((l, i) => {
@@ -680,7 +673,7 @@ button.pill:active { transform: scale(.96); }
 
   // ---------- settings ----------
   function fill(c) {
-    $("#f-title").value = c.title; $("#f-meta").value = c.meta;
+    $("#f-title").value = c.title;
     $("#f-listen").value = c.listen; $("#f-mode").value = c.mode; $("#f-lyrics").value = c.lyrics;
   }
   function screenInfo() {
@@ -704,7 +697,6 @@ button.pill:active { transform: scale(.96); }
     cfg = {
       ...cfg,
       title: $("#f-title").value.trim() || DEFAULTS.title,
-      meta: $("#f-meta").value.trim(),
       listen: Math.max(1, +$("#f-listen").value || DEFAULTS.listen),
       mode: $("#f-mode").value,
       lyrics: $("#f-lyrics").value
