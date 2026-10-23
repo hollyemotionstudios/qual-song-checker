@@ -20,7 +20,7 @@ On iPhone, Safari doesn't allow web pages to go full screen. Use **Share → Add
 | Start listening | Tap the orb, or press <kbd>Space</kbd> |
 | Open the lyrics | Tap **Play full song**, or press <kbd>Space</kbd>. The song-found screen waits until then |
 | Pause / play lyrics | Tap the play button, or press <kbd>Space</kbd> |
-| Jump in the song | Tap or drag the progress bar |
+| Jump in the song | Tap a lyric line to jump to it, or tap or drag the progress bar |
 | Step lyrics | <kbd>→</kbd> / <kbd>←</kbd>, or tap the lyrics in tap mode |
 | Reset to start | Tap anywhere along the top of the screen, or press <kbd>R</kbd> / <kbd>Esc</kbd> |
 | Crew settings | Hold the top-right corner of the start screen, or press <kbd>S</kbd> |

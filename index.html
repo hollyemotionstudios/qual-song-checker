@@ -160,6 +160,7 @@ button.pill:active { transform: scale(.96); }
 }
 .lyr-track { position: absolute; left: 0; right: 0; top: 0; display: flex; flex-direction: column; gap: 22px; transition: transform .9s cubic-bezier(.25,.8,.25,1); will-change: transform; }
 .lyr-line {
+  cursor: pointer;
   font-family: var(--display); font-weight: 800;
   font-size: clamp(1.6rem, 7.6vw, 2.4rem); line-height: 1.15; letter-spacing: -0.02em;
   text-wrap: balance;
@@ -348,7 +349,7 @@ button.pill:active { transform: scale(.96); }
       <label class="lyr-setting">Lyrics, one line per row as m:ss then text
         <textarea id="f-lyrics" spellcheck="false"></textarea>
       </label>
-      <p class="lyr-setting">Add an English translation after a bar, for example <code>0:12 Aissera… | Last night…</code>. Rows without a timestamp follow the previous row by 4 seconds. A row with only ♪ shows a music break. The song clock starts 3 seconds before the first row.</p>
+      <p class="lyr-setting">Add an English translation after a bar, for example <code>0:12 Aissera… | Last night…</code>. Rows without a timestamp follow the previous row by 4 seconds. A row with only ♪ shows a music break. The player starts at 0:00.</p>
       <div class="row">
         <button class="btn primary" type="submit">Save and close</button>
         <button class="btn" type="button" id="btnCancel">Close without saving</button>
@@ -360,7 +361,7 @@ button.pill:active { transform: scale(.96); }
         <li><b>Start listening:</b> tap the orb, or press <kbd>Space</kbd>.</li>
         <li><b>Open the lyrics:</b> tap <b>Play full song</b> on the song-found screen, or press <kbd>Space</kbd>. The screen waits there until then.</li>
         <li class="lyr-setting"><b>Pause / play lyrics:</b> tap the play button, or press <kbd>Space</kbd>. Tap or drag the progress bar to jump.</li>
-        <li class="lyr-setting"><b>Step lyrics:</b> <kbd>→</kbd> / <kbd>←</kbd>, or tap the lyrics in tap mode.</li>
+        <li class="lyr-setting"><b>Jump to a line:</b> tap it. <b>Step lyrics:</b> <kbd>→</kbd> / <kbd>←</kbd>.</li>
         <li><b>Open these settings:</b> press and hold the top-right corner of the start screen, or press <kbd>S</kbd>.</li>
       </ul>
     </form>
@@ -418,7 +419,7 @@ button.pill:active { transform: scale(.96); }
   let clockStart = 0;      // performance.now() when song clock = songStart
   let paused = false;
   let pausedAt = 0;        // song time held while paused
-  let songStart = 0;       // seconds into the song when lyrics begin
+  let songStart = 0;       // song time the player starts from
   let active = -1;
   let wakeLock = null;
   let matchAt = 0;
@@ -471,7 +472,7 @@ button.pill:active { transform: scale(.96); }
       d.dataset.i = i;
       track.appendChild(d);
     });
-    songStart = lines.length ? Math.max(0, lines[0].t - 3) : 0;
+    songStart = 0;
     $("#btnPlay").hidden = cfg.mode === "tap";
     $("#tEnd").textContent = "-" + fmt(cfg.duration - songStart);
   }
@@ -630,7 +631,12 @@ button.pill:active { transform: scale(.96); }
     if (state !== "match" || SHOW_LYRICS) return;
     if (performance.now() - matchAt > 600) reset(); // ignore a stray tap left over from the orb
   });
-  view.addEventListener("click", () => { if (state === "lyrics" && cfg.mode === "tap") step(1); });
+  view.addEventListener("click", e => {
+    if (state !== "lyrics") return;
+    const line = e.target.closest(".lyr-line");
+    if (line) seek(lines[+line.dataset.i].t);
+    else if (cfg.mode === "tap") step(1);
+  });
   $("#btnPlay").addEventListener("click", e => { e.stopPropagation(); setPaused(!paused); });
   const scrub = $("#scrub");
   const seekTo = e => { const r = scrub.getBoundingClientRect(); seek((e.clientX - r.left) / r.width * cfg.duration); };
